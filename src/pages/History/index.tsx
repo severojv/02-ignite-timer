@@ -1,6 +1,7 @@
 import { HistoryContainer, HistoryList, Stauts } from "./styles";
 
 export function History(){
+    
     return (
         <HistoryContainer>
             <h1>Meu Histórico</h1>
