@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { CountdownContainer, SeparatorContainer } from "../styles";
 import { differenceInSeconds } from "date-fns";
+import { CyclesContext } from "..";
 
 export function Countdown() {
+
+    const { activeCycle, activeCycleID, markCurrentCycleAsFinished } = useContext(CyclesContext)
 
     const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
     const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
@@ -15,16 +18,8 @@ export function Countdown() {
                 const secondsDiferents = differenceInSeconds(new Date(), activeCycle.startData)
 
                 if (secondsDiferents >= totalSeconds) {
+                    markCurrentCycleAsFinished()
 
-                    setCycles(state =>
-                        state.map((cycle) => {
-                            if (cycle.id == activeCycleID) {
-                                return { ...cycle, finishedDate: new Date() }
-                            } else {
-                                return cycle
-                            }
-                        }),
-                    )
                     setAmountSecondsPassed(totalSeconds)
                     clearInterval(interval)
                 } else {
@@ -33,12 +28,27 @@ export function Countdown() {
 
             }, 1000)
         }
-
         return () => {
 
             clearInterval(interval)
         }
-    }, [activeCycle, totalSeconds, activeCycleID])
+        }, [activeCycle, totalSeconds, activeCycleID, markCurrentCycleAsFinished])
+        
+        const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0;
+
+        const minutesAmount = Math.floor(currentSeconds / 60); // arrredondar para baixo
+        const secondsAmount = currentSeconds % 60;
+
+        const minutes = String(minutesAmount).padStart(2, '0');
+        const seconds = String(secondsAmount).padStart(2, '0');
+
+        useEffect(() => {
+            if (activeCycle) {
+                document.title = `${minutes}:${seconds}`
+            }
+        }, [minutes, seconds, activeCycle])
+
+
 
 
     return (
