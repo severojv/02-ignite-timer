@@ -30,25 +30,47 @@ interface CyclesConstextProvaiderProps{
     children:ReactNode
 }
 
+interface CyclesState{
+    cycles:Cycle[]
+    activeCycleID:string|null
+}
 export const CyclesContext = createContext({} as CycleContextType)
 
 export function CyclesConstextProvaider({children}:CyclesConstextProvaiderProps){
 
 
-    const [cycles, dispatch] = useReducer((state:Cycle[],action:any)=>{
+    const [cyclesState, dispatch] = useReducer((state:CyclesState,action:any)=>{
         if(action.type=='ADD_NEWCYCLE'){
-            return [...state,action.payload.newCycle]
+            return {
+                ...state,
+                cycles:[...state.cycles,action.payload.newCycle],
+                activeCycleID:action.payload.newCycle.id,
+            }
         }
-        else if(action.type=='MARK_CURRENT_CYCLE'){
+        if(action.type=='MARK_CURRENT_CYCLE'){
 
         }
-        else if(action.type=='INTERRUPT_CURRENT_CYCLE'){
-
+        if(action.type=='INTERRUPT_CURRENT_CYCLE'){
+            return{
+                ...state,
+                cycles:
+                    state.cycles.map((cycle) => {
+                                 if (cycle.id ==state.activeCycleID) {
+                                     return { ...cycle, interruptDate: new Date() }
+                                } else {
+                                     return cycle
+                                 }
+                     }),
+                
+                activeCycleID:null,
+            }
         }
         return state
-    },[])
-
-    const [activeCycleID, setactiveCycleID] = useState<string | null>(null)
+    },{
+        cycles:[],
+        activeCycleID:null
+    },)
+    const {cycles,activeCycleID} =cyclesState
     const [amountSecondsPassed, setAmountSecondsPassed] = useState(0);
     const activeCycle = cycles.find(cycle => cycle.id == activeCycleID)   //percorre até achar cycle ativo
 
@@ -93,7 +115,6 @@ export function CyclesConstextProvaider({children}:CyclesConstextProvaiderProps)
             },
         })
         //setCycles((state) => [...state, newCycle])
-        setactiveCycleID(id)
         setAmountSecondsPassed(0)
 
     }
