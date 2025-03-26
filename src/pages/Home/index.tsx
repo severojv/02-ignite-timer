@@ -1,12 +1,13 @@
 import { HandPalm, Play, Target } from "phosphor-react"
 import { CountdownContainer, FormContainer, HomeConteiner, MinutesAmountInput, SeparatorContainer, StartCountdownButton, TaskInput, StopCountdownButton } from "./styles"
-import { createContext, useEffect, useState } from "react"
-import { useForm } from 'react-hook-form';
+import { createContext, useContext, useEffect, useState } from "react"
+import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from 'zod';
 import { differenceInSeconds, interval } from "date-fns";
 import { NewCycleForm } from "./NewCycleForm";
 import { Countdown } from "./Countdown";
+import { CyclesContext } from "../../context/CyclesContext";
 /*
 function register(name:string){
     return(
@@ -24,95 +25,57 @@ function register(name:string){
 }*/
 
 
-interface Cycle {
-    id: string
-    task: string
-    minutesAmount: number
-    startData: Date
-    interruptDate?: Date
-    finishedDate?: Date
 
-}
-interface CycleContextType {
-    activeCycle: Cycle | undefined
-    activeCycleID: String | null
-    markCurrentCycleAsFinished: ()=> void
 
-}
 
-export const CyclesContext = createContext({} as CycleContextType)
+const newCycleFormValidationSchema = zod.object({
+    task: zod.string().min(1, 'Informe a tarefa'),
+    minutesAmount: zod.number().min(1).max(60),
+})
+
+type newCycleFormData = zod.infer<typeof newCycleFormValidationSchema> //inferir o typo de acordo com o objeto 
 
 export function Home() {
+    const {activeCycle,createNewCycle,interruptCurrentCycle}=useContext(CyclesContext)
 
-
-
-    const [cycles, setCycles] = useState<Cycle[]>([])
-
-    const [activeCycleID, setactiveCycleID] = useState<string | null>(null)
-
-    function markCurrentCycleAsFinished() {
-
-        setCycles(state =>
-            state.map((cycle) => {
-                if (cycle.id == activeCycleID) {
-                    return { ...cycle, finishedDate: new Date() }
-                } else {
-                    return cycle
-                }
-            }),
-        )
-    }
-
-    const activeCycle = cycles.find(cycle => cycle.id == activeCycleID)   //percorre até achar cycle ativo
-
-
-
-
-    function handleCreateNewCycle(data: newCycleFormData) {
-
-        const id = String(new Date().getTime()) //pega a data atual com os milisegundos para id
-
-        const newCycle: Cycle = {
-            id,
-            task: data.task,
-            minutesAmount: data.minutesAmount,
-            startData: new Date(),
+    const newCycleForms = useForm<newCycleFormData>({
+        resolver: zodResolver(newCycleFormValidationSchema),
+        defaultValues: {
+            task: '',
+            minutesAmount: 0,
         }
-        setCycles((state) => [...state, newCycle])
-        setactiveCycleID(id)
-        setAmountSecondsPassed(0)
-        reset();
+    })
 
-    }
-    function handleInterruptCycle() {
-        setCycles((state) =>
-            state.map(cycle => {
-                if (cycle.id == activeCycleID) {
-                    return { ...cycle, interruptDate: new Date() }
-                } else {
-                    return cycle
-                }
-            }))
-        setactiveCycleID(null)
+    const { handleSubmit, watch, reset } = newCycleForms
+    
 
+    function handleCreateNewCycle(data: newCycleFormData){
+        createNewCycle(data)
+        reset()
     }
 
 
-    console.log(formState.errors)
+
+    
+
+ 
+
+
     const task = watch('task');         //"'observa '" a task
 
 
     return (
         <HomeConteiner>
             <form onSubmit={handleSubmit(handleCreateNewCycle)}>
-                <CyclesContext.Provider value={{ activeCycle, activeCycleID,markCurrentCycleAsFinished}}>
+               
+                    <FormProvider  {...newCycleForms}>
+                        <NewCycleForm />
 
-                    <NewCycleForm />
+                    </FormProvider>
                     <Countdown />
-                </CyclesContext.Provider>
 
                 {activeCycle ? (
-                    <StopCountdownButton onClick={handleInterruptCycle} type="button">
+                    <StopCountdownButton onClick={interruptCurrentCycle} type="button">
                         <HandPalm size={24} />
                         Interromper
                     </StopCountdownButton>

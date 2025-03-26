@@ -3,12 +3,15 @@ import { defaultTheme } from "./styles/thems/defaut" // alterar o tema " ligth a
 import { GlobalStyle } from "./styles/global"
 import { BrowserRouter } from "react-router-dom"
 import { Router } from "./Router"
+import { CyclesConstextProvaider } from "./context/CyclesContext"
 function App() {
 
   return (
     <ThemeProvider theme={defaultTheme}>
       <BrowserRouter>
-        <Router />
+        <CyclesConstextProvaider>
+          <Router />
+        </CyclesConstextProvaider>
       </BrowserRouter>
 
       <GlobalStyle></GlobalStyle>

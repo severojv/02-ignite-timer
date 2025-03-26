@@ -1,29 +1,14 @@
-import { HandPalm, Play } from "phosphor-react";
-import { CountdownContainer, FormContainer, MinutesAmountInput, SeparatorContainer, StartCountdownButton, StopCountdownButton, TaskInput } from "../styles";
-import * as zod from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import {  FormContainer, MinutesAmountInput, TaskInput } from "../styles";
+import {  useFormContext } from "react-hook-form";
+import { useContext } from "react";
+import { CyclesContext } from "../../../context/CyclesContext";
 
-
-const newCycleFormValidationSchema = zod.object({
-    task: zod.string().min(1, 'Informe a tarefa'),
-    minutesAmount: zod.number().min(1).max(60),
-})
-
-type newCycleFormData = zod.infer<typeof newCycleFormValidationSchema> //inferir o typo de acordo com o objeto 
 
 
 export function NewCycleForm() {
-    
-    const { register, handleSubmit, watch, formState, reset } = useForm<newCycleFormData>({
-        resolver: zodResolver(newCycleFormValidationSchema),
-        defaultValues: {
-            task: '',
-            minutesAmount: 0,
-        }
-    })
-    
-    
+
+    const {activeCycle} = useContext(CyclesContext)
+    const {register }=useFormContext()
     return (
         <FormContainer>
 
